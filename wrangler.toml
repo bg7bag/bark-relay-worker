@@ -1,0 +1,8 @@
+name = "bark-relay-worker"
+main = "src/index.js"
+compatibility_date = "2026-11-03"
+
+# Optional vars. Secrets are set with `wrangler secret put`, never here.
+[vars]
+BARK_SERVER = "https://api.day.app"
+ALLOW_USER_KEYS = "false"
