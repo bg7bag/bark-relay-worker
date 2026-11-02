@@ -1,6 +1,6 @@
 name = "bark-relay-worker"
 main = "src/index.js"
-compatibility_date = "2026-11-03"
+compatibility_date = "2026-11-02"
 
 # Optional vars. Secrets are set with `wrangler secret put`, never here.
 [vars]
