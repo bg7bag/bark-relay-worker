@@ -104,7 +104,8 @@ export default {
     });
     if (!resp.ok) {
       seen.delete(key);
-      return new Response(`Bark rejected the push (HTTP ${resp.status})`, { status: 502 });
+      const detail = (await resp.text()).slice(0, 200);
+      return new Response(`Bark rejected the push (HTTP ${resp.status}): ${detail}`, { status: 502 });
     }
     return Response.json({ delivered: true });
   },
