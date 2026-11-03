@@ -63,10 +63,15 @@ Bark + SDR, using the relay above plus a script on your recording computer:
 - [Bark + SDR: A Push When the Band Opens to You](https://bg7bag.com/bark-sdr-band-opening/) — watch the WSJT-X decode log and push on a matching frequency, mode and callsign.
 - [Bark + SDR: Know When Recording Finishes or Fails](https://bg7bag.com/bark-sdr-recording-status/) — push when a long recording finishes, when disk space runs low, or when the expected file never appears.
 
+Urgent alerts, using the relay above:
+
+- [Urgent Alerts That Only Speak When It Matters](https://bg7bag.com/urgent-alerts-that-only-speak-when-it-matters/) — one Worker watches earthquakes, solar storms, and tsunami warnings, and pushes only when a threshold is really crossed; see `alert-worker/` below.
+
 ## In this repository
 
 - `sdr-scripts/` — the four Python scripts for the Bark + SDR articles above, one per article: `01-satellite-recording.py`, `02-repeater-watch.py`, `03-band-opening.py`, `04-recording-status.py`. Each script takes only your relay address and passphrase; your Bark key is never in a script. Copy the script from its article or from Raw here, fill in your own values, and run it on your recording computer.
 - `sat-worker/` — the satellite-pass reminder Worker from the third guide above. It runs on a cron schedule in Cloudflare, computes passes with satellite.js, and pushes through this relay. The folder's own README has the deploy outline. It contains no coordinates, keys or passphrases; fill in your own.
+- `alert-worker/` — the urgent-alert Worker from the eighth guide above. It watches USGS earthquakes, NOAA solar storms and tsunami warnings, and GDACS Red alerts, and pushes title-only through this relay. The folder's own README has the thresholds, the duplication rules, and the deploy outline. It contains no keys or passphrases; fill in your own.
 
 ## Notes and limits
 
