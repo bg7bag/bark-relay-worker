@@ -1816,15 +1816,12 @@ function fmtShanghai(date) {
 }
 function payloadFor(sat, p, short) {
   const good = p.max >= GOOD_DEG ? "\u597D\u5708" : "";
+  const title = `${good}${sat.name} ${fmtShanghai(p.aos)}`;
   if (short) {
-    return {
-      title: `${good}${sat.name} 15\u5206\u949F\u540E\u8FC7\u9876\uFF0C\u8D77 ${fmtShanghai(p.aos)}`,
-      body: "",
-      group: "sat-pass"
-    };
+    return { title, body: "", group: "sat-pass" };
   }
   return {
-    title: `${good}${sat.name} 15\u5206\u949F\u540E\u8FC7\u9876`,
+    title,
     body: `\u8D77 ${fmtShanghai(p.aos)}\uFF0C\u6700\u9AD8 ${Math.round(p.max)} \u5EA6\uFF0C\u7EA6 ${Math.round((p.los - p.aos) / 6e4)} \u5206\u949F\uFF1B${sat.mode}\uFF1B\u4E0A\u884C ${sat.up}\uFF0C\u4E0B\u884C ${sat.down}`,
     group: "sat-pass"
   };
