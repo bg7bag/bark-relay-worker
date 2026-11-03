@@ -1814,8 +1814,15 @@ function fmtShanghai(date) {
   const get = (t) => parts.find((p) => p.type === t).value;
   return `${get("month")}-${get("day")} ${get("hour")}:${get("minute")}`;
 }
-function payloadFor(sat, p) {
+function payloadFor(sat, p, short) {
   const good = p.max >= GOOD_DEG ? "\u597D\u5708" : "";
+  if (short) {
+    return {
+      title: `${good}${sat.name} 15\u5206\u949F\u540E\u8FC7\u9876`,
+      body: `\u8D77 ${fmtShanghai(p.aos)}`,
+      group: "sat-pass"
+    };
+  }
   return {
     title: `${good}${sat.name} 15\u5206\u949F\u540E\u8FC7\u9876`,
     body: `\u8D77 ${fmtShanghai(p.aos)}\uFF0C\u6700\u9AD8 ${Math.round(p.max)} \u5EA6\uFF0C\u7EA6 ${Math.round((p.los - p.aos) / 6e4)} \u5206\u949F\uFF1B${sat.mode}\uFF1B\u4E0A\u884C ${sat.up}\uFF0C\u4E0B\u884C ${sat.down}`,
@@ -1830,7 +1837,7 @@ async function pushViaRelay(env, payload) {
   });
   return { status: res.status, text: (await res.text()).slice(0, 200) };
 }
-async function checkPasses(env, now, hours, windowMin, windowMax, stepMs = 3e4) {
+async function checkPasses(env, now, hours, windowMin, windowMax, stepMs = 3e4, short = false) {
   const lat = parseFloat(env.SAT_LAT);
   const lon = parseFloat(env.SAT_LON);
   const observer = {
@@ -1851,7 +1858,7 @@ async function checkPasses(env, now, hours, windowMin, windowMax, stepMs = 3e4) 
     const passes = findPasses(satrec, now, new Date(now.getTime() + hours * 36e5), observer, stepMs);
     for (const p of passes) {
       const minutes = (p.aos - now) / 6e4;
-      const pl = payloadFor(sat, p);
+      const pl = payloadFor(sat, p, short);
       if (windowMin === null || minutes >= windowMin && minutes <= windowMax) {
         results.push({ sat: sat.code, aos: p.aos.toISOString(), max: Math.round(p.max), payload: pl });
       } else if (windowMin === null) {
@@ -1874,13 +1881,15 @@ async function alreadySent(env, key) {
 }
 async function doScheduled(env, now) {
   const out = [];
-  const found = await checkPasses(env, now, 1, 10, 20);
+  const found = await checkPasses(env, now, 1, 10, 20, 3e4, true);
   for (const f of found) {
     if (!f.payload) {
       out.push(f);
       continue;
     }
-    const key = `${f.sat}|${f.aos}`;
+    const aosMin = new Date(f.aos);
+    aosMin.setSeconds(0, 0);
+    const key = `${f.sat}|${aosMin.toISOString()}`;
     if (await alreadySent(env, key)) {
       out.push({ ...f, skipped: "duplicate" });
       continue;
@@ -1905,7 +1914,7 @@ var index_default = {
         const found2 = await checkPasses(env, now, 24, null, null, 6e4);
         return Response.json({ now: now.toISOString(), passes: found2 });
       }
-      const found = await checkPasses(env, now, 1, 10, 20);
+      const found = await checkPasses(env, now, 1, 10, 20, 3e4, true);
       return Response.json({ now: now.toISOString(), would_push: found });
     }
     return new Response("Not found", { status: 404 });
