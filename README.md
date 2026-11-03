@@ -46,6 +46,28 @@ Share the **code**, not your deployment: let each ham deploy it to their own Clo
 - Satellite passes and band openings: push a reminder a few minutes before the window.
 - Emergency net activation: push only the operators on duty.
 
+## Step-by-step guides
+
+The code in this repository is explained, step by step, in a series on BG7BAG Radio. The articles are written for an ordinary operator to follow by hand, with no assistant tool required to run them.
+
+Bark setup:
+
+- [iPhone Low-Power Instant Ham Radio Reminders](https://bg7bag.com/why-i-use-bark-for-reminders/) — why Bark, and what makes it fit field use.
+- [One App, Two Websites: Instant Ham Radio Reminders](https://bg7bag.com/one-app-two-websites-instant-ham-radio-reminders/) — set up the relay in this repository, on your own Cloudflare account.
+- [Satellite Pass Reminders by Hand: Start at 30 Degrees](https://bg7bag.com/satellite-pass-reminders-by-hand-start-at-30-degrees/) — a satellite pass reminder that needs no computer of your own; see `sat-worker/` below.
+
+Bark + SDR, using the relay above plus a script on your recording computer:
+
+- [Bark + SDR: Never Miss a Satellite Recording Again](https://bg7bag.com/bark-sdr-satellite-recording/) — watch a recording folder and push when a satellite recording finishes.
+- [Bark + SDR: Get Pushed Only When the Repeater Talks](https://bg7bag.com/bark-sdr-repeater-watch/) — push only when squelch opens and a new recording file appears.
+- [Bark + SDR: A Push When the Band Opens to You](https://bg7bag.com/bark-sdr-band-opening/) — watch the WSJT-X decode log and push on a matching frequency, mode and callsign.
+- [Bark + SDR: Know When Recording Finishes or Fails](https://bg7bag.com/bark-sdr-recording-status/) — push when a long recording finishes, when disk space runs low, or when the expected file never appears.
+
+## In this repository
+
+- `sdr-scripts/` — the four Python scripts for the Bark + SDR articles above, one per article: `01-satellite-recording.py`, `02-repeater-watch.py`, `03-band-opening.py`, `04-recording-status.py`. Each script takes only your relay address and passphrase; your Bark key is never in a script. Copy the script from its article or from Raw here, fill in your own values, and run it on your recording computer.
+- `sat-worker/` — the satellite-pass reminder Worker from the third guide above. It runs on a cron schedule in Cloudflare, computes passes with satellite.js, and pushes through this relay. The folder's own README has the deploy outline. It contains no coordinates, keys or passphrases; fill in your own.
+
 ## Notes and limits
 
 - Bark is iOS only. Android operators need a different push service (e.g. ntfy).
@@ -55,9 +77,8 @@ Share the **code**, not your deployment: let each ham deploy it to their own Clo
 
 ## Roadmap
 
-- Strict throttling backed by Workers KV.
+- Strict throttling backed by Workers KV (for this relay; `sat-worker/` already dedups with KV).
 - An example DX spot filter (data source still to be decided — HamAlert vs. cluster feed).
-- An example satellite-pass reminder.
 
 ## License
 
