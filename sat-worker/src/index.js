@@ -15,7 +15,10 @@
  *   GET /check       dry-run of the scheduled check, requires X-Relay-Secret
  * Scheduled (cron, every 5 min): push passes whose AOS is 10-20 min away
  *   and whose max elevation is >= 30 deg; >= 70 deg is marked "好圈".
- * Dedup: KV binding DEDUP when present (key sat|AOS, 1 h TTL);
+ * Dedup: KV binding DEDUP when present (key sat|AOS rounded to the
+ *   minute, 1 h TTL — rounding matters: the raw AOS timestamp carries
+ *   milliseconds that shift between cron runs, which made the old
+ *   millisecond-precision key miss every duplicate);
  *   otherwise best-effort in-memory (same isolate only).
  *
  * Satellites (verified against AMSAT tables, 2026-10-31 editions):
@@ -89,8 +92,18 @@ function fmtShanghai(date) {
   return `${get('month')}-${get('day')} ${get('hour')}:${get('minute')}`;
 }
 
-function payloadFor(sat, p) {
+function payloadFor(sat, p, short) {
   const good = p.max >= GOOD_DEG ? '好圈' : '';
+  // Scheduled pushes stay short so the phone can speak them: title +
+  // start time only. The frequency, mode, max elevation and duration
+  // details stay in /list, which is read on screen, not spoken.
+  if (short) {
+    return {
+      title: `${good}${sat.name} 15分钟后过顶`,
+      body: `起 ${fmtShanghai(p.aos)}`,
+      group: 'sat-pass',
+    };
+  }
   return {
     title: `${good}${sat.name} 15分钟后过顶`,
     body: `起 ${fmtShanghai(p.aos)}，最高 ${Math.round(p.max)} 度，` +
@@ -109,7 +122,7 @@ async function pushViaRelay(env, payload) {
   return { status: res.status, text: (await res.text()).slice(0, 200) };
 }
 
-async function checkPasses(env, now, hours, windowMin, windowMax, stepMs = 30000) {
+async function checkPasses(env, now, hours, windowMin, windowMax, stepMs = 30000, short = false) {
   const lat = parseFloat(env.SAT_LAT);
   const lon = parseFloat(env.SAT_LON);
   const observer = {
@@ -126,7 +139,7 @@ async function checkPasses(env, now, hours, windowMin, windowMax, stepMs = 30000
     const passes = findPasses(satrec, now, new Date(now.getTime() + hours * 3600000), observer, stepMs);
     for (const p of passes) {
       const minutes = (p.aos - now) / 60000;
-      const pl = payloadFor(sat, p);
+      const pl = payloadFor(sat, p, short);
       if (windowMin === null || (minutes >= windowMin && minutes <= windowMax)) {
         results.push({ sat: sat.code, aos: p.aos.toISOString(), max: Math.round(p.max), payload: pl });
       } else if (windowMin === null) {
@@ -151,10 +164,15 @@ async function alreadySent(env, key) {
 
 async function doScheduled(env, now) {
   const out = [];
-  const found = await checkPasses(env, now, 1, 10, 20);
+  const found = await checkPasses(env, now, 1, 10, 20, 30000, true);
   for (const f of found) {
     if (!f.payload) { out.push(f); continue; }
-    const key = `${f.sat}|${f.aos}`;
+    // Round AOS to the minute before keying: the raw AOS carries
+    // milliseconds that shift between cron runs, so a millisecond key
+    // never matches the previous run and duplicates slip through.
+    const aosMin = new Date(f.aos);
+    aosMin.setSeconds(0, 0);
+    const key = `${f.sat}|${aosMin.toISOString()}`;
     if (await alreadySent(env, key)) { out.push({ ...f, skipped: 'duplicate' }); continue; }
     const r = await pushViaRelay(env, f.payload);
     out.push({ ...f, push: r });
@@ -178,7 +196,8 @@ export default {
         return Response.json({ now: now.toISOString(), passes: found });
       }
       // /check is dry-run only: list what WOULD be pushed, never push.
-      const found = await checkPasses(env, now, 1, 10, 20);
+      // It mirrors the scheduled push, so it uses the short format.
+      const found = await checkPasses(env, now, 1, 10, 20, 30000, true);
       return Response.json({ now: now.toISOString(), would_push: found });
     }
     return new Response('Not found', { status: 404 });
