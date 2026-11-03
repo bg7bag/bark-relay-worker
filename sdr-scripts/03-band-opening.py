@@ -13,8 +13,10 @@ WANTED_MODE = "FT8"
 WANTED_TEXT = "YOUR-WANTED-CALL-OR-PREFIX"
 COOLDOWN_SECONDS = 600
 
-def send_push(title, body):
-    data = json.dumps({"title": title, "body": body, "group": "sdr-dx"}).encode()
+# Pushes are title-only: on my phone, a push with a body is not
+# spoken aloud, so everything goes into the title and there is no body.
+def send_push(title):
+    data = json.dumps({"title": title, "group": "sdr-dx"}).encode()
     req = urllib.request.Request(RELAY_URL, data=data, method="POST")
     req.add_header("Content-Type", "application/json")
     req.add_header("X-Relay-Secret", RELAY_SECRET)
@@ -23,7 +25,7 @@ def send_push(title, body):
 
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == "test":
-        send_push("Test push", "If you read this on your phone, the relay path works.")
+        send_push("Test push, relay path works")
         return
     pos = os.path.getsize(LOG_FILE)
     last_push = 0
@@ -37,7 +39,7 @@ def main():
                 for line in f:
                     if WANTED_FREQ in line and WANTED_MODE in line and WANTED_TEXT in line:
                         if time.time() - last_push >= COOLDOWN_SECONDS:
-                            send_push("Band open", line.strip()[:120])
+                            send_push("Band open, " + line.strip()[:120])
                             last_push = time.time()
             pos = size
         time.sleep(15)
