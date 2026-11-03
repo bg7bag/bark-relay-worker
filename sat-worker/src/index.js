@@ -94,13 +94,14 @@ function fmtShanghai(date) {
 
 function payloadFor(sat, p, short) {
   const good = p.max >= GOOD_DEG ? '好圈' : '';
-  // Scheduled pushes stay short so the phone can speak them: title +
-  // start time only. The frequency, mode, max elevation and duration
-  // details stay in /list, which is read on screen, not spoken.
+  // Scheduled pushes are title-only: on this phone, a push with a
+  // body is not spoken aloud, so the rise time goes into the title
+  // and the body stays empty. The full details stay in /list,
+  // which is read on screen, not spoken.
   if (short) {
     return {
-      title: `${good}${sat.name} 15分钟后过顶`,
-      body: `起 ${fmtShanghai(p.aos)}`,
+      title: `${good}${sat.name} 15分钟后过顶，起 ${fmtShanghai(p.aos)}`,
+      body: '',
       group: 'sat-pass',
     };
   }
