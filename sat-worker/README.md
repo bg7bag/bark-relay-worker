@@ -21,10 +21,12 @@ and Bark is the only thing that notifies you.
   minute: the raw rise timestamp carries milliseconds that shift
   between cron runs, and a millisecond-precision key never matched,
   so the same pass was pushed twice.
-- A scheduled push is deliberately short so the phone can speak it:
-  title plus the rise time only (for example, "起 11-03 13:06").
-  The full details — max elevation, duration, mode, uplink and
-  downlink — stay in `GET /list`, which is read on screen, not spoken.
+- A scheduled push is title-only: the satellite name plus the rise
+  time, for example "沙特卫星 1C 11-03 13:06". There is no body,
+  because on the author's phone a push with a body is not spoken
+  aloud. The full details — max elevation, duration, mode, uplink
+  and downlink — stay in `GET /list`, which is read on screen,
+  not spoken.
 - A reminder is geometric only: it does not guarantee the transponder
   is switched on (AO-91 is silent in eclipse, the ISS repeater is
   sometimes off).
