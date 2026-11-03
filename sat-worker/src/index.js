@@ -94,19 +94,19 @@ function fmtShanghai(date) {
 
 function payloadFor(sat, p, short) {
   const good = p.max >= GOOD_DEG ? '好圈' : '';
-  // Scheduled pushes are title-only: on this phone, a push with a
-  // body is not spoken aloud, so the rise time goes into the title
-  // and the body stays empty. The full details stay in /list,
+  // Push title is the satellite name plus the rise time only, for
+  // example "沙特卫星 1C 11-03 13:06". No "15分钟后过顶": that window
+  // is vague, and the time itself is what the listener needs — which
+  // satellite, at what hour and minute, can be seen. Scheduled pushes
+  // are title-only: on this phone, a push with a body is not spoken
+  // aloud, so the body stays empty. The full details stay in /list,
   // which is read on screen, not spoken.
+  const title = `${good}${sat.name} ${fmtShanghai(p.aos)}`;
   if (short) {
-    return {
-      title: `${good}${sat.name} 15分钟后过顶，起 ${fmtShanghai(p.aos)}`,
-      body: '',
-      group: 'sat-pass',
-    };
+    return { title, body: '', group: 'sat-pass' };
   }
   return {
-    title: `${good}${sat.name} 15分钟后过顶`,
+    title,
     body: `起 ${fmtShanghai(p.aos)}，最高 ${Math.round(p.max)} 度，` +
       `约 ${Math.round((p.los - p.aos) / 60000)} 分钟；${sat.mode}；` +
       `上行 ${sat.up}，下行 ${sat.down}`,
