@@ -1818,8 +1818,8 @@ function payloadFor(sat, p, short) {
   const good = p.max >= GOOD_DEG ? "\u597D\u5708" : "";
   if (short) {
     return {
-      title: `${good}${sat.name} 15\u5206\u949F\u540E\u8FC7\u9876`,
-      body: `\u8D77 ${fmtShanghai(p.aos)}`,
+      title: `${good}${sat.name} 15\u5206\u949F\u540E\u8FC7\u9876\uFF0C\u8D77 ${fmtShanghai(p.aos)}`,
+      body: "",
       group: "sat-pass"
     };
   }
