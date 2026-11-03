@@ -1,0 +1,1 @@
+{"dependencies":{"satellite.js":"^5.0.0"},"devDependencies":{"esbuild":"^0.25.0"},"name":"bark-sat-worker","private":true,"type":"module","version":"1.0.0"}
