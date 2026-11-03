@@ -17,6 +17,14 @@ and Bark is the only thing that notifies you.
 - Pushes, via the relay Worker, only passes whose rise (AOS) is
   10-20 minutes away — about 15 minutes' notice.
 - Dedups with a Workers KV namespace, so one pass is pushed only once.
+  The dedup key is the satellite plus the rise time rounded to the
+  minute: the raw rise timestamp carries milliseconds that shift
+  between cron runs, and a millisecond-precision key never matched,
+  so the same pass was pushed twice.
+- A scheduled push is deliberately short so the phone can speak it:
+  title plus the rise time only (for example, "起 11-03 13:06").
+  The full details — max elevation, duration, mode, uplink and
+  downlink — stay in `GET /list`, which is read on screen, not spoken.
 - A reminder is geometric only: it does not guarantee the transponder
   is switched on (AO-91 is silent in eclipse, the ISS repeater is
   sometimes off).
