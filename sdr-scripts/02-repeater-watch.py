@@ -12,8 +12,10 @@ FILE_ENDING = ".wav"
 COOLDOWN_SECONDS = 600
 REPEATER_NAME = "YOUR-REPEATER-FREQUENCY"
 
-def send_push(title, body):
-    data = json.dumps({"title": title, "body": body, "group": "sdr-repeater"}).encode()
+# Pushes are title-only: on my phone, a push with a body is not
+# spoken aloud, so everything goes into the title and there is no body.
+def send_push(title):
+    data = json.dumps({"title": title, "group": "sdr-repeater"}).encode()
     req = urllib.request.Request(RELAY_URL, data=data, method="POST")
     req.add_header("Content-Type", "application/json")
     req.add_header("X-Relay-Secret", RELAY_SECRET)
@@ -22,7 +24,7 @@ def send_push(title, body):
 
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == "test":
-        send_push("Test push", "If you read this on your phone, the relay path works.")
+        send_push("Test push, relay path works")
         return
     known = set(os.listdir(WATCH_FOLDER))
     last_push = 0
@@ -30,7 +32,7 @@ def main():
         current = set(os.listdir(WATCH_FOLDER))
         for name in sorted(current - known):
             if name.lower().endswith(FILE_ENDING) and time.time() - last_push >= COOLDOWN_SECONDS:
-                send_push("Repeater traffic", "%s, %s" % (REPEATER_NAME, name))
+                send_push("Repeater traffic, %s, %s" % (REPEATER_NAME, name))
                 last_push = time.time()
         known = current
         time.sleep(30)
